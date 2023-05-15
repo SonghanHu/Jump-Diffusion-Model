@@ -6,6 +6,7 @@ class get_sigma:
         da = yfin.history(period = '3mo')
         self.price_list =  list(da.iloc[:,3])
         self.return_list = []
+        self.price = self.price_list[-1]
 
     def calculation(self):
 
@@ -61,37 +62,35 @@ class JumpDiffusion:
 
     def __init__(self, s, e, sigma, r, T, m, v, lamb):
 
-        self.S = s
-        self.E = e
+        self.s = s
+        self.e = e
         self.sigma = sigma
         self.r = r
-        self.delta_t = T
+        self.T = T
         self.m = m
         self.v = v
-        self.lamb = lamb
+        self.lam = lamb
 
     def JD_Call(self):
-        p = 0
+        call_price = 0
         for k in range(50):
-            r_k = self.r - self.lam*(self.m - 1) + (self.k * np.log(self.m) ) / self.T
-            sigma_k = np.sqrt(self.sigma ** 2 + (self.k * self.v ** 2) / self.T)
-            k_fact = np.math.factorial(self.k)
+            r_k = self.r - self.lam * (self.m - 1) + (k * np.log(self.m) ) / self.T
+            sigma_k = np.sqrt(self.sigma ** 2 + (k * self.v ** 2) / self.T)
+            k_fact = np.math.factorial(k)
             bs = BlackScholes(self.s, self.e, sigma_k, r_k, self.T)
             bs.black_scholes()
-            call = bs.Call
-            self.p += (np.exp(- self.m * self.lam * self.T) * (self.m * self.lam * self.T) ** k / (k_fact)) * call
-        return self.p
+            self.bs_call = bs.Call
+            call_price += (np.exp(- self.m * self.lam * self.T) * (self.m * self.lam * self.T) ** k / (k_fact)) * self.bs_call
+        return call_price
 
     def JD_Put(self):
-        p = 0
+        put_price = 0
         for k in range(50):
-            r_k = self.r - self.lam * (self.m - 1) + (self.k * np.log(self.m) ) / self.T
-            sigma_k = np.sqrt(self.sigma ** 2 + (self.k * self.v ** 2) / self.T)
-            k_fact = np.math.factorial(self.k)
-            bs = BlackScholes(s, e, sigma_k, r_k, T)
+            r_k = self.r - self.lam * (self.m - 1) + (k * np.log(self.m) ) / self.T
+            sigma_k = np.sqrt(self.sigma ** 2 + (k * self.v ** 2) / self.T)
+            k_fact = np.math.factorial(k)
+            bs = BlackScholes(self.s, self.e, sigma_k, r_k, self.T)
             bs.black_scholes()
-            put = bs.Put
-            self.p += (np.exp(- self.m * self.lam * self.T) * (self.m * self.lam * self.T) ** k / (k_fact)) * put
-        return self.p
-    
-
+            self.bs_put = bs.Put
+            put_price += (np.exp(- self.m * self.lam * self.T) * (self.m * self.lam * self.T) ** k / (k_fact)) * self.bs_put
+        return put_price
